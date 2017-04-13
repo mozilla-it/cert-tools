@@ -27,7 +27,7 @@ for target in "${TARGETS[@]}"; do
             action=x509
         else
             action="NULL"
-            modhash="00000000000000000000000000000000"
+            modhash="|---non-openssl-related-file---|"
         fi
         if [ -z "$modhash" ]; then
             modhash="`openssl $action -in $target -noout -modulus 2>/dev/null | md5sum | awk '{print $1}'`"
