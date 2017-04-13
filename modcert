@@ -1,0 +1,37 @@
+#!/bin/bash
+
+VERBOSE=${VERBOSE:-false}
+MODCERT="$0"
+TARGETS=( "$@" )
+ACTIONS=( x509 req rsa )
+
+KEY="-----BEGIN RSA PRIVATE KEY-----"
+CSR="-----BEGIN CERTIFICATE REQUEST-----"
+CRT="-----BEGIN CERTIFICATE-----"
+PWD="Proc-Type: 4,ENCRYPTED"
+
+for target in "${TARGETS[@]}"; do
+    modhash=""
+    if [ -d "$target" ]; then
+        $MODCERT `find $target -maxdepth 1 -mindepth 1 -print0 | xargs -0 echo`
+        continue
+    elif [ -f "$target" ]; then
+        if grep -Fxq -- "$PWD" "$target"; then
+            action=rsa
+            modhash="|----password-protected-rsa----|"
+        elif grep -Fxq -- "$KEY" "$target"; then
+            action=rsa
+        elif grep -Fxq -- "$CSR" "$target"; then
+            action=req
+        elif grep -Fxq -- "$CRT" "$target"; then
+            action=x509
+        else
+            action="NULL"
+            modhash="00000000000000000000000000000000"
+        fi
+        if [ -z "$modhash" ]; then
+            modhash="`openssl $action -in $target -noout -modulus 2>/dev/null | md5sum | awk '{print $1}'`"
+        fi
+    fi
+    printf "%s %-4s %s\n" $modhash $action $target
+done
