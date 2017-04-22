@@ -23,12 +23,12 @@ for target in "${TARGETS[@]}"; do
         continue
     elif [ -f "$target" ]; then
         line="`grep -F -- "$BEG" "$target" | head -1`"
-        action="NULL"
+        action=
         modhash="|---non-openssl-related-file---|"
-        if [[ -n "$line" ]]; then
-            action="${LINES[$line]:-NULL}"
+        if [ -n "$line" ]; then
+            action="${LINES[$line]}"
             modhash="|---unknown-openssl-file-type--|"
-            if [[ -n "$action" ]]; then
+            if [ -n "$action" ]; then
                 if [ "$action" == "rsa" ] && grep -Fxq -- "$PWD" "$target"; then
                     modhash="|----password-protected-rsa----|"
                 else
@@ -37,5 +37,5 @@ for target in "${TARGETS[@]}"; do
             fi
         fi
     fi
-    printf "%s %-4s %s\n" $modhash $action $target
+    printf "%s %-4s %s\n" $modhash ${action:-NULL} $target
 done
