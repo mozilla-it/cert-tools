@@ -4,14 +4,16 @@ VERBOSE=${VERBOSE:-false}
 MODCERT="$0"
 TARGETS=( "$@" )
 
+PWD="Proc-Type: 4,ENCRYPTED"
 BEG="-----BEGIN"
-KEY="-----BEGIN RSA PRIVATE KEY-----"
 CSR="-----BEGIN CERTIFICATE REQUEST-----"
 CRT="-----BEGIN CERTIFICATE-----"
-PWD="Proc-Type: 4,ENCRYPTED"
+KEY_PKCS1="-----BEGIN RSA PRIVATE KEY-----"
+KEY_PKCS8="-----BEGIN PRIVATE KEY-----"
 
 declare -A LINES=( \
-    ["$KEY"]="rsa" \
+    ["$KEY_PKCS1"]="rsa" \
+    ["$KEY_PKCS8"]="rsa" \
     ["$CSR"]="req" \
     ["$CRT"]="x509" \
 )
