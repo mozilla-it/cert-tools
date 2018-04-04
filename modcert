@@ -11,20 +11,19 @@ CRT="-----BEGIN CERTIFICATE-----"
 KEY_PKCS1="-----BEGIN RSA PRIVATE KEY-----"
 KEY_PKCS8="-----BEGIN PRIVATE KEY-----"
 
-declare -A LINES=( \
-    ["$KEY_PKCS1"]="rsa" \
-    ["$KEY_PKCS8"]="rsa" \
-    ["$CSR"]="req" \
-    ["$CRT"]="x509" \
-)
+declare -A LINES
+LINES["$CRT"]="x509"
+LINES["$CSR"]="req"
+LINES["$KEY_PKCS1"]="rsa"
+LINES["$KEY_PKCS8"]="rsa"
 
 for target in "${TARGETS[@]}"; do
     modhash=""
     if [ -d "$target" ]; then
-        $MODCERT `find $target -maxdepth 1 -mindepth 1 -print0 | xargs -0 echo`
+        $MODCERT "$(find "$target" -maxdepth 1 -mindepth 1 -print0 | xargs -0 echo)"
         continue
     elif [ -f "$target" ]; then
-        line="`grep -F -- "$BEG" "$target" | head -1`"
+        line="$(grep -F -- "$BEG" "$target" | head -1)"
         action=
         modhash="|---non-openssl-related-file---|"
         if [ -n "$line" ]; then
@@ -34,10 +33,10 @@ for target in "${TARGETS[@]}"; do
                 if [ "$action" == "rsa" ] && grep -Fxq -- "$PWD" "$target"; then
                     modhash="|----password-protected-rsa----|"
                 else
-                    modhash="`openssl $action -in $target -noout -modulus 2>/dev/null | md5sum | awk '{print $1}'`"
+                    modhash="$(openssl "$action" -in "$target" -noout -modulus 2>/dev/null | md5sum | awk '{print $1}')"
                 fi
             fi
         fi
     fi
-    printf "%s %-4s %s\n" $modhash ${action:-NULL} $target
+    printf "%s %-4s %s\n" "$modhash" "${action:-NULL}" "$target"
 done
