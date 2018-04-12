@@ -13,7 +13,7 @@ fi
 
 if [ -t 0 ]; then
     if [[ `host "$1"` != *"not found"* ]]; then
-        echo -n | openssl s_client -connect $1:443 -servername $1 | openssl x509 -text
+        echo -n | openssl s_client -connect $1:443 -servername $1 2> /dev/null | openssl x509 -text
         exit 0
     elif [ ! -f "$1" ]; then
         echo "invalid: $1"
