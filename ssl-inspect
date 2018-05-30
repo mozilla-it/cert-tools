@@ -1,6 +1,11 @@
 #!/bin/bash
 # based off of src: https://gist.github.com/gene1wood/6530100
 
+if [ -n "$DEBUG" ]; then
+    PS4=':${LINENO}+'
+    set -x
+fi
+
 if ! hash host 2> /dev/null; then
     echo "host not installed..."
     exit 1
@@ -12,8 +17,15 @@ if ! hash openssl 2> /dev/null; then
 fi
 
 if [ -t 0 ]; then
-    if [[ $(host "$1") != *"not found"* ]]; then
-        echo -n | openssl s_client -connect "$1:443" -servername "$1" 2> /dev/null | openssl x509 -text
+    if [[ "$1" == *":"* ]]; then
+        HOST="${1%%:*}"
+        PORT="${1#*:}"
+    else
+        HOST="$1"
+        PORT="443"
+    fi
+    if [[ $(host "$HOST") != *"not found"* ]]; then
+        echo -n | openssl s_client -connect "$HOST:$PORT" -servername "$HOST" 2> /dev/null | openssl x509 -text
         exit 0
     elif [ ! -f "$1" ]; then
         echo "invalid: $1"
