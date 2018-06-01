@@ -6,17 +6,32 @@ if [ -n "$DEBUG" ]; then
     set -x
 fi
 
-if ! hash host 2> /dev/null; then
-    echo "host not installed..."
-    exit 1
-fi
+CRT="-----BEGIN CERTIFICATE-----"
+CSR="-----BEGIN CERTIFICATE REQUEST-----"
+KEY="-----BEGIN RSA PRIVATE KEY-----"
 
-if ! hash openssl 2> /dev/null; then
-    echo "openssl not installed..."
-    exit 1
-fi
+RC=0
+TEXT=""
+ACTION=
 
-if [ -t 0 ]; then
+process() {
+    while read line; do
+        if [ -z "$TEXT" ]; then
+            if [ "$line" == "$CRT" ]; then
+                ACTION="x509"
+            elif [ "$line" == "$CSR" ]; then
+                ACTION="req"
+            elif [ "$line" == "$KEY" ]; then
+                ACTION="rsa"
+            fi
+            TEXT="$line\n"
+        else
+            TEXT="$TEXT$line\n"
+        fi
+    done < "$1"
+}
+
+host_cmd() {
     if [[ "$1" == *":"* ]]; then
         HOST="${1%%:*}"
         PORT="${1#*:}"
@@ -25,32 +40,43 @@ if [ -t 0 ]; then
         PORT="443"
     fi
     if [[ $(host "$HOST") != *"not found"* ]]; then
-        echo -n | openssl s_client -connect "$HOST:$PORT" -servername "$HOST" 2> /dev/null | openssl x509 -text
-        exit 0
+        echo "echo -n | openssl s_client -connect $HOST:$PORT -servername $HOST 2> /dev/null | openssl x509 -text"
+        return 0
     elif [ ! -f "$1" ]; then
-        echo "invalid: $1"
-        exit 1
+        echo "echo invalid: $1"
+        return 1
     fi
-fi
+}
 
-while read line; do
-    if [ -z "$TEXT" ]; then
-        if [ "$line" == "-----BEGIN CERTIFICATE-----" ]; then
-            action="x509"
-        elif [ "$line" == "-----BEGIN CERTIFICATE REQUEST-----" ]; then
-            action="req"
-        elif [ "$line" == "-----BEGIN RSA PRIVATE KEY-----" ]; then
-            action="rsa"
-        fi
-        TEXT="$line\n"
+file_cmd() {
+    if [ -n "$TEXT" ] && [ -n "$ACTION" ]; then
+        echo "printf '%b' \"\$TEXT\" | openssl $ACTION -in /dev/stdin -noout -text"
+        return 0
     else
-        TEXT="$TEXT$line\n"
+        echo "echo ERROR"
+        return 1
     fi
-done < "${1:-/dev/stdin}"
+}
 
-if [ -n "$TEXT" ] && [ -n "$action" ]; then
-    printf '%b' "$TEXT" | openssl $action -in /dev/stdin -noout -text
+if [ -t 0 ]; then
+    if [ -f "$1" ]; then
+        process "$1"
+        CMD="$(file_cmd)"
+        RC=$?
+    else
+        CMD="$(host_cmd "$1")"
+        RC=$?
+    fi
 else
-    echo "ERROR"
-    exit 1
+    process /dev/stdin
+    CMD="$(file_cmd)"
+    RC=$?
 fi
+
+if [ -n "$VERBOSE" ]; then
+    echo "$CMD"
+fi
+
+
+eval "$CMD"
+exit "$RC"
