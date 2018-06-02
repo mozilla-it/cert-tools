@@ -19,9 +19,20 @@ CRT="-----BEGIN CERTIFICATE-----"
 CSR="-----BEGIN CERTIFICATE REQUEST-----"
 KEY="-----BEGIN RSA PRIVATE KEY-----"
 
+OPENSSL_ARGS="${OPENSSL_ARGS:-"-noout -text"}"
+
 RC=0
 TEXT=""
 ACTION=
+
+run() {
+    CMD="$1"
+    RC="${2:-0}"
+    if [ -n "$VERBOSE" ]; then
+        >&2 echo "$CMD"
+    fi
+    eval "$CMD"
+}
 
 process() {
     while read line; do
@@ -41,6 +52,7 @@ process() {
 }
 
 host_cmd() {
+    ACTION="x509"
     if [[ "$1" == *":"* ]]; then
         HOST="${1%%:*}"
         PORT="${1#*:}"
@@ -49,22 +61,20 @@ host_cmd() {
         PORT="443"
     fi
     if [[ $(host "$HOST") != *"not found"* ]]; then
-        echo "echo -n | openssl s_client -connect $HOST:$PORT -servername $HOST 2> /dev/null | openssl x509 -text"
-        return 0
-    elif [ ! -f "$1" ]; then
-        echo "echo invalid: $1"
-        return 1
+        echo "echo -n | openssl s_client -connect $HOST:$PORT -servername $HOST 2> /dev/null | openssl $ACTION $OPENSSL_ARGS"
+        return
     fi
+    >&2 echo "host $HOST, port $PORT not found!"
+    exit 1
 }
 
 file_cmd() {
     if [ -n "$TEXT" ] && [ -n "$ACTION" ]; then
-        echo "printf '%b' \"\$TEXT\" | openssl $ACTION -in /dev/stdin -noout -text"
+        echo "printf '%b' \"\$TEXT\" | openssl $ACTION $OPENSSL_ARGS"
         return 0
-    else
-        echo "echo ERROR"
-        return 1
     fi
+    >&2 echo "openssl $ACTION failed on file input!"
+    exit 1
 }
 
 inspect() {
@@ -72,41 +82,56 @@ inspect() {
         if [ -f "$1" ]; then
             process "$1"
             CMD="$(file_cmd)"
-            RC=$?
         else
             CMD="$(host_cmd "$1")"
-            RC=$?
         fi
     else
         process /dev/stdin
         CMD="$(file_cmd)"
-        RC=$?
     fi
+    run "$CMD"
+}
+
+sans() {
+    >&2 echo "compare requires two args"
+    exit 1
 }
 
 validity(){
     CMD="$REAL_PATH/ssl-inspect $1 | grep Validity -A2"
-    RC=0
+    run "$CMD"
 }
 
 compare() {
-    CMD="echo not-implemented"
-    RC=1
+    if [ -z "$1" ] || [ -z "$2" ]; then
+        >&2 echo "compare requires two args"
+        exit 1
+    fi
+    CMD1="$REAL_PATH/ssl-inspect $1"
+    CMD2="$REAL_PATH/ssl-inspect $2"
+    diff <(run "$CMD1") <(run "$CMD2") > /dev/null
 }
 
 case "$SCRIPT_NAME" in
     ssl-inspect)
         inspect "$1"
+        exit $?
+        ;;
+    ssl-sans)
+        sans "$1"
+        exit $?
         ;;
     ssl-validity)
         validity "$1"
+        exit $?
         ;;
     ssl-compare)
         compare "$1" "$2"
+        exit $?
         ;;
     *)
         echo "unknown command"
-        echo "valid commands: ssl-inspect, ssl-validity, ssl-compare"
+        echo "valid commands: ssl-inspect, ssl-sans, ssl-validity, ssl-compare"
         exit 1
         ;;
 esac
