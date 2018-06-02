@@ -6,6 +6,15 @@ if [ -n "$DEBUG" ]; then
     set -x
 fi
 
+SCRIPT_FILE="$0"
+SCRIPT_NAME="$(basename "$SCRIPT_FILE")"
+SCRIPT_PATH="$(dirname "$SCRIPT_FILE")"
+if [ -L "$0" ]; then
+    REAL_FILE="$(readlink "$0")"
+    REAL_NAME="$(basename "$REAL_FILE")"
+    REAL_PATH="$(dirname "$REAL_FILE")"
+fi
+
 CRT="-----BEGIN CERTIFICATE-----"
 CSR="-----BEGIN CERTIFICATE REQUEST-----"
 KEY="-----BEGIN RSA PRIVATE KEY-----"
@@ -58,25 +67,53 @@ file_cmd() {
     fi
 }
 
-if [ -t 0 ]; then
-    if [ -f "$1" ]; then
-        process "$1"
+inspect() {
+    if [ -t 0 ]; then
+        if [ -f "$1" ]; then
+            process "$1"
+            CMD="$(file_cmd)"
+            RC=$?
+        else
+            CMD="$(host_cmd "$1")"
+            RC=$?
+        fi
+    else
+        process /dev/stdin
         CMD="$(file_cmd)"
         RC=$?
-    else
-        CMD="$(host_cmd "$1")"
-        RC=$?
     fi
-else
-    process /dev/stdin
-    CMD="$(file_cmd)"
-    RC=$?
-fi
+}
+
+validity(){
+    CMD="$REAL_PATH/ssl-inspect $1 | grep Validity -A2"
+    RC=0
+}
+
+compare() {
+    CMD="echo not-implemented"
+    RC=1
+}
+
+case "$SCRIPT_NAME" in
+    ssl-inspect)
+        inspect "$1"
+        ;;
+    ssl-validity)
+        validity "$1"
+        ;;
+    ssl-compare)
+        compare "$1" "$2"
+        ;;
+    *)
+        echo "unknown command"
+        echo "valid commands: ssl-inspect, ssl-validity, ssl-compare"
+        exit 1
+        ;;
+esac
 
 if [ -n "$VERBOSE" ]; then
     echo "$CMD"
 fi
-
 
 eval "$CMD"
 exit "$RC"
