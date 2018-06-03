@@ -93,8 +93,7 @@ inspect() {
 }
 
 sans() {
-    >&2 echo "compare requires two args"
-    exit 1
+    run "$REAL_PATH/ssl-inspect $1" | sed -n ':a;/X509v3 Subject Alternative Name/{n;h;p;x;ba}' | sed 's/[ \t]*DNS://g' | sed 's/,/\n/g'
 }
 
 validity(){
