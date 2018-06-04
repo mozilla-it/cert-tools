@@ -3,6 +3,13 @@ collection of for dealing with ssl|tls certificates
 
 ## ssl-inspect and friends
 
+This script and its derivatives were inspired by a script written by Gene Wood.
+https://gist.github.com/gene1wood/6530100
+
+I have only expanded upon the ideas he started with.  The script itself wraps
+several openssl and sed commands to give quick access to information.  When
+working a lot with SSL, these commands can be helpful.
+
 ### ssl-inspect
 
 The ssl-inpsect script can be run on local files (x509, req, rsa) or cat the
