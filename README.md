@@ -165,5 +165,6 @@ code will indicate if the diff was exact or different.
 
 ```shell
 $ ssl-compare www.srihash.org.crt www.srihash.org
-$
+$ echo $?
+$ 0
 ```
