@@ -9,6 +9,7 @@ The ssl-inpsect script can be run on local files (x509, req, rsa) or cat the
 contents of one of these files into it.  Hostnames and optional port can be
 specified to grab the x509 on a remote host.
 
+```shell
 $ ssl-inspect google.com
 Certificate:
     Data:
@@ -74,6 +75,7 @@ Certificate:
          28:c8:56:70:20:bf:10:18:82:17:8f:84:83:b4:7b:09:79:97:
          76:15:f4:8a:3b:a8:76:8b:38:da:ce:f0:7b:5e:b5:75:0b:56:
          1d:c7:58:bd
+```
 
 ### ssl-sans
 
