@@ -106,9 +106,7 @@ compare() {
         >&2 echo "compare requires two args"
         exit 1
     fi
-    CMD1="$REAL_PATH/ssl-inspect $1"
-    CMD2="$REAL_PATH/ssl-inspect $2"
-    diff <(run "$CMD1") <(run "$CMD2") > /dev/null
+    diff <(run "$REAL_PATH/ssl-inspect $1") <(run "$REAL_PATH/ssl-inspect $2") > /dev/null
 }
 
 case "$SCRIPT_NAME" in
