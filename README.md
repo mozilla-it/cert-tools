@@ -82,6 +82,7 @@ Certificate:
 The ssl-sans symlink allows for extracting the [S]ubject [A]lternative [N]ames.
 It can be run on local x509 files or on remote hosts.
 
+```shell
 $ ssl-sans google.com
 *.google.com
 *.android.com
@@ -143,15 +144,18 @@ youtu.be
 youtube.com
 youtubeeducation.com
 yt.be
+```
 
 ### ssl-validity
 
 The ssl-validity symlink allows for checking the Validity section of an x509
 certificate either local or remote.
 
+```shell
 $ ssl-validity google.com
 Not Before: May 15 21:06:06 2018 GMT
 Not After : Aug  7 19:53:00 2018 GMT
+```
 
 ### ssl-compare
 
@@ -159,5 +163,7 @@ The ssl-compare symlink allows for comparing two x509 certificates, usually
 between a local cert file and a remote one provided by a webserver.  The return
 code will indicate if the diff was exact or different.
 
+```shell
 $ ssl-compare www.srihash.org.crt www.srihash.org
 $
+```
