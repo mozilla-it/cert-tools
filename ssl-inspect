@@ -1,5 +1,5 @@
 #!/bin/bash
-# based off of src: https://gist.github.com/gene1wood/6530100
+# inspired by src: https://gist.github.com/gene1wood/6530100
 
 if [ -n "$DEBUG" ]; then
     PS4=':${LINENO}+'
