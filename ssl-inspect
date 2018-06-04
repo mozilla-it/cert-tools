@@ -96,7 +96,7 @@ sans() {
     run "$REAL_PATH/ssl-inspect $1" | sed -n ':a;/X509v3 Subject Alternative Name/{n;h;p;x;ba}' | sed 's/[ \t]*DNS://g' | sed 's/,/\n/g'
 }
 
-validity(){
+validity() {
     run "$REAL_PATH/ssl-inspect $1" | sed -n ':a;/Validity/{n;N;p}' | sed 's/^[ \t]*//'
 }
 
