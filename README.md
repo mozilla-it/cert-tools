@@ -174,4 +174,7 @@ code will indicate if the diff was exact or different.
 $ ssl-compare www.srihash.org.crt www.srihash.org
 $ echo $?
 $ 0
+$ ssl-compare www.srihash.org.crt google.com
+$ echo $?
+$ 1
 ```
