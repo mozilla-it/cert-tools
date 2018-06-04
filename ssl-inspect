@@ -97,8 +97,7 @@ sans() {
 }
 
 validity(){
-    CMD="$REAL_PATH/ssl-inspect $1 | grep Validity -A2"
-    run "$CMD"
+    run "$REAL_PATH/ssl-inspect $1" | sed -n ':a;/Validity/{n;N;p}' | sed 's/^[ \t]*//'
 }
 
 compare() {
