@@ -131,10 +131,3 @@ case "$SCRIPT_NAME" in
         exit 1
         ;;
 esac
-
-if [ -n "$VERBOSE" ]; then
-    echo "$CMD"
-fi
-
-eval "$CMD"
-exit "$RC"
