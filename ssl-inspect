@@ -78,16 +78,16 @@ file_cmd() {
 }
 
 inspect() {
-    if [ -t 0 ]; then
+    if [ ! -t0 ] && [ -z "$1" ]; then
+        process /dev/stdin
+        CMD="$(file_cmd)"
+    else
         if [ -f "$1" ]; then
             process "$1"
             CMD="$(file_cmd)"
         else
             CMD="$(host_cmd "$1")"
         fi
-    else
-        process /dev/stdin
-        CMD="$(file_cmd)"
     fi
     run "$CMD"
 }
