@@ -78,7 +78,7 @@ file_cmd() {
 }
 
 inspect() {
-    if [ ! -t0 ] && [ -z "$1" ]; then
+    if [ ! -t 0 ] && [ -z "$1" ]; then
         process /dev/stdin
         CMD="$(file_cmd)"
     else
