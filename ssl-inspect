@@ -21,7 +21,6 @@ KEY="-----BEGIN RSA PRIVATE KEY-----"
 
 OPENSSL_ARGS="${OPENSSL_ARGS:-"-noout -text"}"
 
-RC=0
 TEXT=""
 ACTION=
 
@@ -106,6 +105,9 @@ compare() {
         exit 1
     fi
     diff <(run "$REAL_PATH/ssl-inspect $1") <(run "$REAL_PATH/ssl-inspect $2") > /dev/null
+    RC="$?"
+    [[ "$RC" == 0 ]] && echo "matched!" || echo "!matched"
+    return "$RC"
 }
 
 case "$SCRIPT_NAME" in
