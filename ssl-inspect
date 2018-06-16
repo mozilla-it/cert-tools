@@ -9,10 +9,13 @@ fi
 SCRIPT_FILE="$0"
 SCRIPT_NAME="$(basename "$SCRIPT_FILE")"
 SCRIPT_PATH="$(dirname "$SCRIPT_FILE")"
-if [ -L "$0" ]; then
-    REAL_FILE="$(readlink "$0")"
-    REAL_NAME="$(basename "$REAL_FILE")"
-    REAL_PATH="$(dirname "$REAL_FILE")"
+[ -L "$0" ] && SCRIPT_REAL="$(readlink "$0")"
+
+if [ -n "$VERBOSE" ]; then
+    echo "SCRIPT_FILE=$SCRIPT_FILE"
+    echo "SCRIPT_NAME=$SCRIPT_NAME"
+    echo "SCRIPT_PATH=$SCRIPT_PATH"
+    echo "SCRIPT_REAL=$SCRIPT_REAL"
 fi
 
 CRT="-----BEGIN CERTIFICATE-----"
@@ -92,11 +95,11 @@ inspect() {
 }
 
 sans() {
-    run "$REAL_PATH/ssl-inspect $1" | sed -n ':a;/X509v3 Subject Alternative Name/{n;h;p;x;ba}' | sed 's/[ \t]*DNS://g' | sed 's/,/\n/g'
+    run "$SCRIPT_PATH/ssl-inspect $1" | sed -n ':a;/X509v3 Subject Alternative Name/{n;h;p;x;ba}' | sed 's/[ \t]*DNS://g' | sed 's/,/\n/g'
 }
 
 validity() {
-    run "$REAL_PATH/ssl-inspect $1" | sed -n ':a;/Validity/{n;N;p}' | sed 's/^[ \t]*//'
+    run "$SCRIPT_PATH/ssl-inspect $1" | sed -n ':a;/Validity/{n;N;p}' | sed 's/^[ \t]*//'
 }
 
 compare() {
@@ -104,7 +107,7 @@ compare() {
         >&2 echo "compare requires two args"
         exit 1
     fi
-    diff <(run "$REAL_PATH/ssl-inspect $1") <(run "$REAL_PATH/ssl-inspect $2") > /dev/null
+    diff <(run "$SCRIPT_PATH/ssl-inspect $1") <(run "$SCRIPT_PATH/ssl-inspect $2") > /dev/null
     RC="$?"
     [[ "$RC" == 0 ]] && echo "matched!" || echo "!matched"
     return "$RC"
