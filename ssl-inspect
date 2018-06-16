@@ -99,7 +99,7 @@ sans() {
 }
 
 validity() {
-    run "$SCRIPT_PATH/ssl-inspect $1" | sed -n ':a;/Validity/{n;N;p}' | sed 's/^[ \t]*//'
+    run "$SCRIPT_PATH/ssl-inspect $1" | awk '/Validity/ {getline; print; getline; print;}' | sed 's/^[ \t]*//'
 }
 
 compare() {
