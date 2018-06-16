@@ -95,7 +95,7 @@ inspect() {
 }
 
 sans() {
-    run "$SCRIPT_PATH/ssl-inspect $1" | awk '/X509v3 Subject Alternative Name/ {getline; print}' | sed 's/[ \t]*DNS://g' | sed 's/,/\n/g'
+    run "$SCRIPT_PATH/ssl-inspect $1" | awk '/X509v3 Subject Alternative Name/ {getline; print}' | sed 's/[ \t]*DNS://g' | tr ',' '\n'
 }
 
 validity() {
